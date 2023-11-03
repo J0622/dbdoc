@@ -216,14 +216,14 @@ commit;
 
 SELECT * FROM category_tbl;
 -- 1차카테고리 출력
-SELECT * FROM category_tbl WHERE cg_parent_code IS NULL;
+SELECT CG_CODE, CG_PARENT_CODE, CG_NAME FROM CATEGORY_TBL WHERE CG_PARENT_CODE IS NULL;
 
 -- 1차카테고리 TOP 의 2차카테고리 출력.
 SELECT * FROM category_tbl WHERE CG_PARENT_CODE = 1;
 
 
 -- 2차카테고리 전부 출력하라.
-SELECT * FROM category_tbl WHERE CG_PARENT_CODE IS NOT NULL;
+SELECT CG_CODE, CG_PARENT_CODE, CG_NAME FROM CATEGORY_TBL WHERE CG_PARENT_CODE = 1  ;
 
 
 
@@ -252,20 +252,82 @@ CREATE TABLE PRODUCT_TBL(
         PRO_PRICE           NUMBER                  NOT NULL,
         PRO_DISCOUNT        NUMBER                  NOT NULL,
         PRO_PUBLISHER       VARCHAR2(50)            NOT NULL,
-        PRO_CONTENT         VARCHAR2(4000)  /* CLOB */                  NOT NULL,       -- 내용이 4000BYTE 초과여부판단?
-        PRO_UP_FOLDER       VARCHAR2(50)             NOT NULL,
-        PRO_IMG             VARCHAR2(50)             NOT NULL,  -- 날짜폴더경로가 포함하여 파일이름저장
+        PRO_CONTENT         VARCHAR2(4000)  /* CLOB */ NOT NULL,       -- 내용이 4000BYTE 초과여부판단?
+        PRO_UP_FOLDER       VARCHAR2(50)            NOT NULL,
+        PRO_IMG             VARCHAR2(100)           NOT NULL,  -- 날짜폴더경로가 포함하여 파일이름저장
         PRO_AMOUNT          NUMBER                  NOT NULL,
-        PRO_BUY             CHAR(1)                 NOT NULL,
+        PRO_BUY             VARCHAR2(10)            NOT NULL,
         PRO_DATE            DATE DEFAULT SYSDATE    NOT NULL,
         PRO_UPDATEDATE      DATE DEFAULT SYSDATE    NOT NULL,
         FOREIGN KEY(CG_CODE) REFERENCES CATEGORY_TBL(CG_CODE)
 );
+commit;
+--공통된 sql구문 작업: 검색조건
+<sql id="criteria">
+		<trim prefix="(" suffix=") AND" prefixOverrides="OR">
+			<foreach collection="typeArr" item="type">
+				<trim prefix="OR">
+					<choose>
+						<when test="type == 'N'.toString()">
+							PRO_NAME like '%' || #{keyword} || '%'
+						</when>
+						<when test="type == 'C'.toString()">
+							PRO_NUM like '%' || #{keyword} || '%'
+						</when>
+						<when test="type == 'P'.toString()">
+                            PRO_PUBLISHER	content like '%' || #{keyword} || '%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+
+--	<!-- CDATA 섹션 -->
+--	<!-- xml문법에서 사용 -->
+	<select id="getListWithPaging"
+		resultType="com.demo.domain.BoardVO"
+		parameterType="com.demo.domain.Criteria">
+		<![CDATA[
+		select
+            PRO_NUM, CG_CODE, PRO_NAME, PRO_PRICE, PRO_DISCOUNT, PRO_PUBLISHER, PRO_CONTENT, PRO_UP_FOLDER, PRO_IMG, PRO_AMOUNT, PRO_BUY, PRO_DATE, PRO_UPDATEDATE
+		from
+		(
+		select /*+INDEX_DESC(PRODUCT_TBL pk_pro_num) */
+			rownum rn, PRO_NUM, CG_CODE, PRO_NAME, PRO_PRICE, PRO_DISCOUNT, PRO_PUBLISHER, PRO_CONTENT, PRO_UP_FOLDER, PRO_IMG, PRO_AMOUNT, PRO_BUY, PRO_DATE, PRO_UPDATEDATE
+		from 
+			PRODUCT_TBL
+            where
+			]]>
+    
+		<include refid="criteria" />
+			
+		<![CDATA[	
+			
+			rownum <= #{pageNum} * #{amount}
+		)
+			where rn > (#{pageNum} -1) * #{amount} 
+		]]>
+	</select>
+
+	<select id="getTotalCount" resultType="int">
+		SELECT COUNT(*) FROM PRODUCT_TBL where
+--		<!-- 아래 구문은 검색에 대한 구문인데 검색을 하지 않았을경우 where절 까지 읽혀서 에러가 발생한다. -->
+		<include refid="criteria"></include>
+--		<!-- 따라서 아래와 같은 값을 주어서 에러를 해결한다. -->
+		PRO_NUM > 0
+	</select>
+
+
+-- 상품 테이블의 상품코드(PRO_NUM) 컬럼에 사용을 목적으로 함
+CREATE SEQUENCE SEQ_PRODUCT_TBL;
+-- CG_CODE, PRO_NAME, PRO_PRICE, PRO_DISCOUNT, PRO_PUBLISHER, PRO_CONTENT, PRO_UP_FOLDER, PRO_IMG, PRO_AMOUNT, PRO_BUY
+INSERT 
+
+SEQ_PRODUCT_TBL.nextval
 
 pro_num, pro_updatedate, pro_buy, pro_publisher, pro_img, pro_up_folder, pro_name, cg_code, pro_price, pro_amount, pro_date, pro_content, pro_discount
 
-
-pro_num, CG_CODE, pro_name, pro_price, pro_discount, pro_publisher, pro_content, pro_up_folder, pro_img, pro_amount, pro_buy, pro_date, pro_updatedate
 
 -- 상품마다 이미지의 개수가 다를 경우 별도의 테이블을 구성(권장)
 -- 상품설명 컬럼에 웹에디터를 이용한 태그코드 내용이 저장된다.
