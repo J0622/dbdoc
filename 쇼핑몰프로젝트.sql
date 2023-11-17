@@ -1,13 +1,29 @@
 /*
 깃허브 저장용..
 */
+
+	CREATE TABLE MBSP_TBL(
+	        mbsp_id             VARCHAR2(15),
+	        mbsp_name           VARCHAR2(30)            NOT NULL,
+	        mbsp_email          VARCHAR2(50)            NOT NULL,
+	        mbsp_password       CHAR(60)                NOT NULL,        -- 비밀번호 암호화 처리.
+	        mbsp_zipcode        CHAR(5)                 NOT NULL,
+	        mbsp_addr           VARCHAR2(100)           NOT NULL,
+	        mbsp_deaddr         VARCHAR2(100)           NOT NULL,
+	        mbsp_phone          VARCHAR2(15)            NOT NULL,
+	        mbsp_point          NUMBER DEFAULT 0        NOT NULL,
+	        mbsp_lastlogin      DATE DEFAULT SYSDATE    NOT NULL,
+	        mbsp_datesub        DATE DEFAULT SYSDATE    NOT NULL,
+	        mbsp_updatedate     DATE DEFAULT SYSDATE    NOT NULL
+	);
+
 DROP TABLE MBSP_TBL;
 
 -- 한글 데이터 크기?
 SELECT LENGTHB('홍') FROM DUAL;
 
 --1.회원가입 테이블
-
+MBSP_EMAIL
 
 
 --실행
@@ -256,7 +272,7 @@ CREATE TABLE PRODUCT_TBL(
         PRO_UP_FOLDER       VARCHAR2(50)            NOT NULL,
         PRO_IMG             VARCHAR2(100)           NOT NULL,  -- 날짜폴더경로가 포함하여 파일이름저장
         PRO_AMOUNT          NUMBER                  NOT NULL,
-        PRO_BUY             VARCHAR2(10)            NOT NULL,
+        PRO_BUY             CHAR(1)                 NOT NULL,  -- Y OR N
         PRO_DATE            DATE DEFAULT SYSDATE    NOT NULL,
         PRO_UPDATEDATE      DATE DEFAULT SYSDATE    NOT NULL,
         FOREIGN KEY(CG_CODE) REFERENCES CATEGORY_TBL(CG_CODE)
@@ -521,6 +537,10 @@ COMMIT;
 */
 -- 장바구니 리스트 조회
 
+SELECT c.cart_code,c.pro_num,c.cart_amount, p.pro_name, p.pro_price, p.pro_img, p.pro_up_folder, p.pro_discount from product_tbl p 
+INNER JOIN CART_TBL C 
+ON P.PRO_NUM = C.PRO_NUM
+WHERE C.MBSP_ID = 'user01';
 
 
 
@@ -571,12 +591,14 @@ CREATE TABLE ORDER_TBL(
         ORD_CODE            NUMBER                  PRIMARY KEY,
         MBSP_ID             VARCHAR2(15)            NOT NULL,
         ORD_NAME            VARCHAR2(30)            NOT NULL,
-        ORD_ADDR_NUM        CHAR(5)                 NOT NULL,
+        ORD_ZIPCODE         CHAR(5)                 NOT NULL,
         ORD_ADDR_BASIC      VARCHAR2(50)            NOT NULL,
         ORD_ADDR_DETAIL     VARCHAR2(50)            NOT NULL,
         ORD_TEL             VARCHAR2(20)            NOT NULL,
         ORD_PRICE           NUMBER                  NOT NULL,  -- 총주문금액. 선택
         ORD_REGDATE         DATE DEFAULT SYSDATE    NOT NULL,
+        ORD_STATUS          VARCHAR2(20)            NOT NULL,  -- 주문상태
+        PAYMENT_STATUS      VARCHAR2(20)            NOT NULL,   -- 결제상태
         FOREIGN KEY(MBSP_ID) REFERENCES MBSP_TBL(MBSP_ID)
 );
 
@@ -594,6 +616,15 @@ CREATE TABLE ORDETAIL_TBL(
         DT_PRICE        NUMBER      NOT NULL,  -- 역정규화
         PRIMARY KEY (ORD_CODE ,PRO_NUM) 
 );
+
+-- 주문 테이블 ORDER_TBL
+CREATE SEQUENCE SEQ_ORD_CODE;
+
+-- 주문 상세 테이블 참조(장바구니 테이블 참조)
+INSERT ORDETAIL_TBL(ORD_CODE, PRO_NUM, DT_AMOUNT, DT_PRICE)
+SELECT #{ord_code} c.PRO_NUM, c.CART_AMOUNT ,p.PRO_PRICE
+FROM CART_TBL c INNER JOIN PRODUCT_TBL p ON c.PRO_NUM = p.PRO_NUM
+WHERE MBSP_ID = #{mbsp_id};
 
 insert into ORDETAIL_TBL(ord_code, pro_num, dt_amount, dt_price)
 select c.pro_num, c.cart_amount, p.pro_price
@@ -864,16 +895,36 @@ FROM (
     )
 WHERE RN >=4 AND RN <=6;
 
+UPDATE PRODUCT_TBL SET PRO_PRICE= , PRO_BUY= WHERE PRO_NUM=
+
+SELECT PRO_NUM, CG_CODE, PRO_NAME, PRO_PRICE, PRO_DISCOUNT, PRO_PUBLISHER, PRO_CONTENT, PRO_UP_FOLDER, PRO_IMG, PRO_AMOUNT, PRO_BUY, PRO_DATE, PRO_UPDATEDATE
+FROM PRODUCT_TBL WHERE pro_num = ?;
+
+
+SELECT CG_CODE, CG_PARENT_CODE, CG_NAME FROM CATEGORY_TBL WHERE CG_CODE = 8;
+
+SELECT PRODUCT_TBL SET CG_CODE=, PRO_NAME=, PRO_PRICE=, PRO_DISCOUNT=, PRO_PUBLISHER=,
+PRO_CONTENT=, PRO_UP_FOLDER=, PRO_IMG=, PRO_AMOUNT=, PRO_BUY=, PRO_DATE=, PRO_UPDATEDATE = SYSDATE WHERE PRO_NUM=;
 
 
 
+--결제 테이블
+CREATE TABLE PAYMENT(
+    PAY_CODE            NUMBER          PRIMARY KEY,    -- 일련번호
+    ODR_CODE            NUMBER          NOT NULL,       -- 주민번호
+    MPSP_ID             VARCHAR2(50)    NOT NULL,       -- 회원ID
+    PAY_METHOD          VARCHAR2(50)    NOT NULL,       -- 결제방식
+    PAY_DATE            DATE            NULL,           -- 결제일
+    PAY_TOT_PRICE       NUMBER          NOT NULL,       -- 결제금액
+    PAY_NOBANK_PRICE    NUMBER          NULL,           -- 무통장입금
+    PAY_REST_PRICE      NUMBER          NULL,           -- 미지급금
+    PAY_NOBANK_USER     VARCHAR2(50)    NULL,           -- (무통장)입금자명
+    PAY_NOBANK          VARCHAR2(50)    NULL,           -- 입금은행
+    
+    PAY_MEMO            VARCHAR2(100)   NULL            -- 메모
+);
 
+CREATE SEQUENCE SEQ_PAYMENT_CODE;
 
-
-
-
-
-
-
-
+pay_code, odr_code, mpsp_id, pay_method, pay_date, pay_tot_price, pay_nobank_price, pay_rest_price, pay_nobank_user, pay_nobank, pay_memo
 
