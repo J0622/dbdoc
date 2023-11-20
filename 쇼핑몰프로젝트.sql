@@ -920,6 +920,7 @@ CREATE TABLE PAYMENT(
     PAY_REST_PRICE      NUMBER          NULL,           -- 미지급금
     PAY_NOBANK_USER     VARCHAR2(50)    NULL,           -- (무통장)입금자명
     PAY_NOBANK          VARCHAR2(50)    NULL,           -- 입금은행
+    PAY_BANKACCOUNT     VARCHAR2(50)    NULL,
     
     PAY_MEMO            VARCHAR2(100)   NULL            -- 메모
 );
@@ -927,4 +928,8 @@ CREATE TABLE PAYMENT(
 CREATE SEQUENCE SEQ_PAYMENT_CODE;
 
 pay_code, odr_code, mpsp_id, pay_method, pay_date, pay_tot_price, pay_nobank_price, pay_rest_price, pay_nobank_user, pay_nobank, pay_memo
+
+INSERT INTO PAYMENT(PAY_CODE, ODR_CODE, MBSP_ID, PAY_METHOD, PAY_DATE, PAY_TOT_PRICE, PAY_NOBANK_PRICE, PAY_NOBANK_USER, PAY_NOBANK, PAY_MEMO)
+VALUES(SEQ_PAYMENT_CODE);
+
 
