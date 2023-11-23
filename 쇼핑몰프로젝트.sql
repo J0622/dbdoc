@@ -770,10 +770,40 @@ CREATE TABLE REVIEW_TBL(
         FOREIGN KEY(PRO_NUM) REFERENCES PRODUCT_TBL(PRO_NUM)
 );
 
+CREATE SEQUENCE seq_review_tbl;
+DROP SEQUENCE SEQ_REW_NUM;
+CREATE SEQUENCE seq_review_tbl START WITH 1 INCREMENT BY 1;
+
+
+commit
+
 ALTER TABLE REVIEW_TBL
 ADD CONSTRAINT PK_REVIEW_TBL PRIMARY KEY(REW_NUM);
 
+-- 사용자 측 상품 리스트 페이징 목록 쿼리
+<![CDATA[
+		select
+           REW_NUM, MBSP_ID, PRO_NUM, REW_CONTENT, REW_SCORE, REW_REGDATE 
+		from
+		(
+		select /*+INDEX_DESC(REVIEW_TBL PK_REVIEW_TBL) */
+			rownum rn, 
+			REW_NUM, MBSP_ID, PRO_NUM, REW_CONTENT, REW_SCORE, REW_REGDATE 
+		from 
+			REVIEW_TBL
+        	
+		where
+			
+			PRO_NUM = #{pro_num}
+			and
+			rownum <= #{cri.pageNum} * #{cri.amount}
+		)
+			where 
+				rn > (#{cri.pageNum} -1) * #{cri.amount} 
+		]]>
 
+INSERT INTO REVIEW_TBL(rew_num, mbsp_id, pro_num, rew_content, rew_score)
+VALUES(SEQ_REVIEW_TBL.NEXTVAL )
 
 create sequence seq_REVIEW_TBL;
 
@@ -931,5 +961,4 @@ pay_code, odr_code, mpsp_id, pay_method, pay_date, pay_tot_price, pay_nobank_pri
 
 INSERT INTO PAYMENT(PAY_CODE, ODR_CODE, MBSP_ID, PAY_METHOD, PAY_DATE, PAY_TOT_PRICE, PAY_NOBANK_PRICE, PAY_NOBANK_USER, PAY_NOBANK, PAY_MEMO)
 VALUES(SEQ_PAYMENT_CODE);
-
 
