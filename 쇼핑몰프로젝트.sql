@@ -588,7 +588,7 @@ DELETE FROM cart_tbl WHERE mbsp_id = 'user01';
 DROP TABLE ORDER_TBL;
 --5.주문내용 테이블
 CREATE TABLE ORDER_TBL(
-        ORD_CODE            NUMBER                  PRIMARY KEY,
+        ORD_CODE            NUMBER,     
         MBSP_ID             VARCHAR2(15)            NOT NULL,
         ORD_NAME            VARCHAR2(30)            NOT NULL,
         ORD_ZIPCODE         CHAR(5)                 NOT NULL,
@@ -598,24 +598,46 @@ CREATE TABLE ORDER_TBL(
         ORD_PRICE           NUMBER                  NOT NULL,  -- 총주문금액. 선택
         ORD_REGDATE         DATE DEFAULT SYSDATE    NOT NULL,
         ORD_STATUS          VARCHAR2(20)            NOT NULL,  -- 주문상태
-        PAYMENT_STATUS      VARCHAR2(20)            NOT NULL,   -- 결제상태
-        FOREIGN KEY(MBSP_ID) REFERENCES MBSP_TBL(MBSP_ID)
+        PAYMENT_STATUS      VARCHAR2(20)            NOT NULL   -- 결제상태
+        --FOREIGN KEY(MBSP_ID) REFERENCES MBSP_TBL(MBSP_ID)
 );
+
+ALTER TABLE ORDER_TBL
+ADD CONSTRAINT PK_ORDER_TBL PRIMARY KEY(ORD_CODE);
 
 
 insert into ORDER_TBL(ord_code, mbsp_id, ord_name, ord_addr_post, ord_addr_basic, ord_addr_detail, ord_tel, ord_price)
 values
 
-
+commit;
 DROP TABLE ORDETAIL_TBL;
 --6.주문상세 테이블
 CREATE TABLE ORDETAIL_TBL(
-        ORD_CODE        NUMBER      NOT NULL REFERENCES ORDER_TBL(ORD_CODE),
-        PRO_NUM         NUMBER      NOT NULL REFERENCES PRODUCT_TBL(PRO_NUM),
+        ORD_CODE        NUMBER      NOT NULL, -- REFERENCES ORDER_TBL(ORD_CODE),
+        PRO_NUM         NUMBER      NOT NULL, -- REFERENCES PRODUCT_TBL(PRO_NUM),
         DT_AMOUNT       NUMBER      NOT NULL,
         DT_PRICE        NUMBER      NOT NULL,  -- 역정규화
         PRIMARY KEY (ORD_CODE ,PRO_NUM) 
 );
+--결제 테이블
+CREATE TABLE PAYMENT(
+    PAY_CODE            NUMBER,          --PRIMARY KEY,    -- 일련번호
+    ODR_CODE            NUMBER          NOT NULL,       -- 주민번호
+    MPSP_ID             VARCHAR2(50)    NOT NULL,       -- 회원ID
+    PAY_METHOD          VARCHAR2(50)    NOT NULL,       -- 결제방식
+    PAY_DATE            DATE            NULL,           -- 결제일
+    PAY_TOT_PRICE       NUMBER          NOT NULL,       -- 결제금액
+    PAY_NOBANK_PRICE    NUMBER          NULL,           -- 무통장입금
+    PAY_REST_PRICE      NUMBER          NULL,           -- 미지급금
+    PAY_NOBANK_USER     VARCHAR2(50)    NULL,           -- (무통장)입금자명
+    PAY_NOBANK          VARCHAR2(50)    NULL,           -- 입금은행
+    PAY_BANKACCOUNT     VARCHAR2(50)    NULL,
+    
+    PAY_MEMO            VARCHAR2(100)   NULL            -- 메모
+);
+
+ALTER TABLE PAYMENT
+ADD CONSTRAINT PK_PAY_CODE PRIMARY KEY(PAY_CODE);
 
 -- 주문 테이블 ORDER_TBL
 CREATE SEQUENCE SEQ_ORD_CODE;
@@ -938,22 +960,7 @@ PRO_CONTENT=, PRO_UP_FOLDER=, PRO_IMG=, PRO_AMOUNT=, PRO_BUY=, PRO_DATE=, PRO_UP
 
 
 
---결제 테이블
-CREATE TABLE PAYMENT(
-    PAY_CODE            NUMBER          PRIMARY KEY,    -- 일련번호
-    ODR_CODE            NUMBER          NOT NULL,       -- 주민번호
-    MPSP_ID             VARCHAR2(50)    NOT NULL,       -- 회원ID
-    PAY_METHOD          VARCHAR2(50)    NOT NULL,       -- 결제방식
-    PAY_DATE            DATE            NULL,           -- 결제일
-    PAY_TOT_PRICE       NUMBER          NOT NULL,       -- 결제금액
-    PAY_NOBANK_PRICE    NUMBER          NULL,           -- 무통장입금
-    PAY_REST_PRICE      NUMBER          NULL,           -- 미지급금
-    PAY_NOBANK_USER     VARCHAR2(50)    NULL,           -- (무통장)입금자명
-    PAY_NOBANK          VARCHAR2(50)    NULL,           -- 입금은행
-    PAY_BANKACCOUNT     VARCHAR2(50)    NULL,
-    
-    PAY_MEMO            VARCHAR2(100)   NULL            -- 메모
-);
+
 
 CREATE SEQUENCE SEQ_PAYMENT_CODE;
 
