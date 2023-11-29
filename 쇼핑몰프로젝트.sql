@@ -969,3 +969,28 @@ pay_code, odr_code, mpsp_id, pay_method, pay_date, pay_tot_price, pay_nobank_pri
 INSERT INTO PAYMENT(PAY_CODE, ODR_CODE, MBSP_ID, PAY_METHOD, PAY_DATE, PAY_TOT_PRICE, PAY_NOBANK_PRICE, PAY_NOBANK_USER, PAY_NOBANK, PAY_MEMO)
 VALUES(SEQ_PAYMENT_CODE);
 
+
+-- 주문 상세정보: 주문 상세테이블, 상품테이블
+-- 조인: 1)ORACLE , 2)ANSI-SQL
+-- 오라클 조인방식
+SELECT OT.ORD_CODE, OT.PRO_NUM, OT.DT_AMOUNT,
+P.PRO_NUM, P.PRO_NAME, P.PRO_PRICE, P.PRO_UP_FOLDER, P.PRO_IMGㄴ
+FROM ORDETAIL_TBL OT, PRODUCT_TBL P
+WHERE OT.PRO_NUM = P.PRO_NUM
+AND OT.ORD_CODE = 선택주문번호;
+
+-- 안시 조인방식
+SELECT OT.ORD_CODE, OT.PRO_NUM, OT.DT_AMOUNT,
+P.PRO_NUM, P.PRO_NAME, P.PRO_PRICE, P.PRO_UP_FOLDER, P.PRO_IMG
+FROM ORDETAIL_TBL OT INNER JOIN PRODUCT_TBL P
+ON OT.PRO_NUM = P.PRO_NUM
+WHERE OT.ORD_CODE = 선택주문번호;
+
+
+-- 카테고리 클래스의 필드명 테이블의 컬럼명이 동일한 경우
+SELECT cg_code, CG_PARENT_CODE, CG_NAME FROM CATEGORY_TBL
+
+-- 카테고리 클래스의 필드명 테이블의 컬럼명이 다른 경우 별칭을 활용
+-- 이러면 resultmap없이 작업 가능
+SELECT cg_code AS 클래스의 필드명, CG_PARENT_CODE AS 클래스의 필드명, CG_NAME AS 클래스의 필드명 FROM CATEGORY_TBL
+
