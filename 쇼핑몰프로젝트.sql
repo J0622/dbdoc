@@ -623,7 +623,7 @@ CREATE TABLE ORDETAIL_TBL(
 CREATE TABLE PAYMENT(
     PAY_CODE            NUMBER,          --PRIMARY KEY,    -- 일련번호
     ODR_CODE            NUMBER          NOT NULL,       -- 주민번호
-    MPSP_ID             VARCHAR2(50)    NOT NULL,       -- 회원ID
+    MBSP_ID             VARCHAR2(50)    NOT NULL,       -- 회원ID
     PAY_METHOD          VARCHAR2(50)    NOT NULL,       -- 결제방식
     PAY_DATE            DATE            NULL,           -- 결제일
     PAY_TOT_PRICE       NUMBER          NOT NULL,       -- 결제금액
